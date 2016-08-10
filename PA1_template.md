@@ -151,26 +151,7 @@ activity_data_augment$daytype <- as.factor(activity_data_augment$daytype)
 augsininint_mean <- aggregate(steps ~ interval + daytype, activity_data_augment, mean) 
 ```
 
-### Separate out factors, and plot them so both the daytype and days intervals can be generated.  Likely possible to do this in one operation.
-
-
-```r
-wd <- activity_data_augment[activity_data_augment$daytype == "weekday",]
-we <- activity_data_augment[activity_data_augment$daytype == "weekend",]
-wda <- aggregate(steps ~ interval, wd, mean)
-wea <- aggregate(steps ~ interval, we, mean)
-```
-
-### Create the actual plots
-
-```r
-par(mfrow=c(2,1))
-plot(wda, type='l', main="Weekdays", col="cyan")
-plot(wea, type='l', main="Weekends", col="magenta")
-```
-
-![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
-
+### Plotting the steps against the interval means, for the factor daytype
 
 ```r
 library(ggplot2)
@@ -178,7 +159,7 @@ g <- ggplot(augsininint_mean, aes(interval, steps)) + geom_line() + facet_grid(d
 g
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
+![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
 
 
 
