@@ -40,32 +40,70 @@ summary(sinad[,2])
 ```{r, include=TRUE}
 sinint <- aggregate(steps ~ interval, activity_no_NA, sum) 
 ```
-## Plotting the activity
+### Plotting the activity
 ```{r, include=TRUE, echo=TRUE}
 plot(sinint, type='l', col="blue", main="Activity in time interval in a day")
 ```
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+### Finding the interval with the max value
+```{r, include=TRUE}
+which.max(sinint[,2])
+sinint[104,]
 ```
 
-## R Markdown
+## Dealing with missing values
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+### Counting the number
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Use the boolean function is.na, and sum the 1-s to get the number
 
-```{r cars}
-summary(cars)
+1. Create a function to look up interval averages depending on the recorded time
+2. Mutate activity_data to include the above information in NA cases
+
+```{r}
+library(dplyr)
+myf<-function(x){y<-sinint[which(sinint[,1]==x),2];   return (y/61)}
+intervals <- sapply(activity_data[,3], myf)
+activity_data %>% mutate(steps = ifelse(is.na(steps), intervals  ,steps)) -> activity_data_augment
 ```
 
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+### Making a histogram of the total number of steps taken
+```{r}
+augsinad <- aggregate(steps ~ date, activity_data_augment, sum) 
+hist(augsinad[,2], breaks=26, col="cyan", main="Histogram of steps in a day with augmented values", xlab="Steps")
+summary(augsinad)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Weekdays and weekends
+
+### Calculate new aggegrate data on the intervals and put in new factor variable
+```{r}
+activity_data_augment %>% mutate(daytype = ifelse( weekdays(as.Date(date))<"Fri" , "weekend", "weekday")) -> activity_data_augment
+activity_data_augment %>% mutate(daytype = ifelse(weekdays(as.Date(date))<"Mon" , "weekend", "weekday")) -> activity_data_augment
+activity_data_augment$daytype <- as.factor(activity_data_augment$daytype)
+
+augsininit <- aggregate(steps ~ interval, activity_data_augment, sum) 
+```
+
+### Separate out factors, and plot them so both the daytype and days intervals can be generated.  Likely possible to do this in one operation.
+
+```{r}
+wd <- activity_data_augment[activity_data_augment$daytype == "weekday",]
+we <- activity_data_augment[activity_data_augment$daytype == "weekend",]
+wda <- aggregate(steps ~ interval, wd, mean)
+wea <- aggregate(steps ~ interval, we, mean)
+```
+
+### Create the actual plots
+```{r}
+par(mfrow=c(2,1))
+plot(wda, type='l', main="Weekdays", col="cyan")
+plot(wea, type='l', main="Weekends", col="magenta")
+```
+
+
+
+
+
+
+

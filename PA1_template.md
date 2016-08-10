@@ -48,12 +48,13 @@ summary(sinad[,2])
 
 
 ```r
-sinint <- aggregate(steps ~ interval, activity_no_NA, sum) 
+sinint_sum <- aggregate(steps ~ interval, activity_no_NA, sum) 
+sinint_mean <- aggregate(steps ~ interval, activity_no_NA, mean) 
 ```
 ### Plotting the activity
 
 ```r
-plot(sinint, type='l', col="blue", main="Activity in time interval in a day")
+plot(sinint_mean, type='l', col="blue", main="Activity in time interval in a day")
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)<!-- -->
@@ -61,7 +62,7 @@ plot(sinint, type='l', col="blue", main="Activity in time interval in a day")
 ### Finding the interval with the max value
 
 ```r
-which.max(sinint[,2])
+which.max(sinint_mean[,2])
 ```
 
 ```
@@ -69,12 +70,12 @@ which.max(sinint[,2])
 ```
 
 ```r
-sinint[104,]
+sinint_mean[104,]
 ```
 
 ```
-##     interval steps
-## 104      835 10927
+##     interval    steps
+## 104      835 206.1698
 ```
 
 ## Dealing with missing values
@@ -109,9 +110,9 @@ library(dplyr)
 ```
 
 ```r
-myf<-function(x){y<-sinint[which(sinint[,1]==x),2];   return (y/61)}
+myf<-function(x){y<-sinint_mean[which(sinint_mean[,1]==x),2];   return (y)}
 intervals <- sapply(activity_data[,3], myf)
-activity_data %>% mutate(steps = ifelse(is.na(steps), intervals  ,steps)) -> activity_data_augment
+activity_data %>% mutate(steps = ifelse(is.na(steps), intervals, steps)) -> activity_data_augment
 ```
 
 ### Making a histogram of the total number of steps taken
@@ -130,9 +131,9 @@ summary(augsinad)
 ```
 ##          date        steps      
 ##  2012-10-01: 1   Min.   :   41  
-##  2012-10-02: 1   1st Qu.: 9354  
-##  2012-10-03: 1   Median :10395  
-##  2012-10-04: 1   Mean   :10581  
+##  2012-10-02: 1   1st Qu.: 9819  
+##  2012-10-03: 1   Median :10766  
+##  2012-10-04: 1   Mean   :10766  
 ##  2012-10-05: 1   3rd Qu.:12811  
 ##  2012-10-06: 1   Max.   :21194  
 ##  (Other)   :55
@@ -147,7 +148,7 @@ activity_data_augment %>% mutate(daytype = ifelse( weekdays(as.Date(date))<"Fri"
 activity_data_augment %>% mutate(daytype = ifelse(weekdays(as.Date(date))<"Mon" , "weekend", "weekday")) -> activity_data_augment
 activity_data_augment$daytype <- as.factor(activity_data_augment$daytype)
 
-augsininit <- aggregate(steps ~ interval, activity_data_augment, sum) 
+augsininint_mean <- aggregate(steps ~ interval + daytype, activity_data_augment, mean) 
 ```
 
 ### Separate out factors, and plot them so both the daytype and days intervals can be generated.  Likely possible to do this in one operation.
@@ -170,6 +171,14 @@ plot(wea, type='l', main="Weekends", col="magenta")
 
 ![](PA1_template_files/figure-html/unnamed-chunk-13-1.png)<!-- -->
 
+
+```r
+library(ggplot2)
+g <- ggplot(augsininint_mean, aes(interval, steps)) + geom_line() + facet_grid(daytype ~ .)
+g
+```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)<!-- -->
 
 
 

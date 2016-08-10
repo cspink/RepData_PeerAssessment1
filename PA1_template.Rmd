@@ -1,8 +1,10 @@
 ---
-title: "𝙿𝙰𝟷_𝚝𝚎𝚖𝚙𝚕𝚊𝚝𝚎"
+title: "\U0001D67F\U0001D670\U0001D7F7_\U0001D69D\U0001D68E\U0001D696\U0001D699\U0001D695\U0001D68A\U0001D69D\U0001D68E"
 author: "LB"
 date: "7 august 2016"
-output: html_document
+output:
+  html_document: 
+    keep_md: true
 ---
 
 ## Loading and preprocessing data
@@ -38,17 +40,18 @@ summary(sinad[,2])
 ### Aggregating data on interval
 
 ```{r, include=TRUE}
-sinint <- aggregate(steps ~ interval, activity_no_NA, sum) 
+sinint_sum <- aggregate(steps ~ interval, activity_no_NA, sum) 
+sinint_mean <- aggregate(steps ~ interval, activity_no_NA, mean) 
 ```
 ### Plotting the activity
 ```{r, include=TRUE, echo=TRUE}
-plot(sinint, type='l', col="blue", main="Activity in time interval in a day")
+plot(sinint_mean, type='l', col="blue", main="Activity in time interval in a day")
 ```
 
 ### Finding the interval with the max value
 ```{r, include=TRUE}
-which.max(sinint[,2])
-sinint[104,]
+which.max(sinint_mean[,2])
+sinint_mean[104,]
 ```
 
 ## Dealing with missing values
@@ -62,9 +65,9 @@ Use the boolean function is.na, and sum the 1-s to get the number
 
 ```{r}
 library(dplyr)
-myf<-function(x){y<-sinint[which(sinint[,1]==x),2];   return (y/61)}
+myf<-function(x){y<-sinint_mean[which(sinint_mean[,1]==x),2];   return (y)}
 intervals <- sapply(activity_data[,3], myf)
-activity_data %>% mutate(steps = ifelse(is.na(steps), intervals  ,steps)) -> activity_data_augment
+activity_data %>% mutate(steps = ifelse(is.na(steps), intervals, steps)) -> activity_data_augment
 ```
 
 ### Making a histogram of the total number of steps taken
@@ -82,25 +85,15 @@ activity_data_augment %>% mutate(daytype = ifelse( weekdays(as.Date(date))<"Fri"
 activity_data_augment %>% mutate(daytype = ifelse(weekdays(as.Date(date))<"Mon" , "weekend", "weekday")) -> activity_data_augment
 activity_data_augment$daytype <- as.factor(activity_data_augment$daytype)
 
-augsininit <- aggregate(steps ~ interval, activity_data_augment, sum) 
+augsininint_mean <- aggregate(steps ~ interval + daytype, activity_data_augment, mean) 
 ```
 
-### Separate out factors, and plot them so both the daytype and days intervals can be generated.  Likely possible to do this in one operation.
-
+### Plotting the steps against the interval means, for the factor daytype
 ```{r}
-wd <- activity_data_augment[activity_data_augment$daytype == "weekday",]
-we <- activity_data_augment[activity_data_augment$daytype == "weekend",]
-wda <- aggregate(steps ~ interval, wd, mean)
-wea <- aggregate(steps ~ interval, we, mean)
+library(ggplot2)
+g <- ggplot(augsininint_mean, aes(interval, steps)) + geom_line() + facet_grid(daytype ~ .)
+g
 ```
-
-### Create the actual plots
-```{r}
-par(mfrow=c(2,1))
-plot(wda, type='l', main="Weekdays", col="cyan")
-plot(wea, type='l', main="Weekends", col="magenta")
-```
-
 
 
 
